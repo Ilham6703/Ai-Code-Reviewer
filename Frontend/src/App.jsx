@@ -9,20 +9,26 @@ import axios from 'axios'
 import './App.css'
 
 function App() {
-  const [ count, setCount ] = useState(0)
-  const [ code, setCode ] = useState(` function sum() {
+  const [code, setCode] = useState(`function sum() {
   return 1 + 1
-}`)
-
-  const [ review, setReview ] = useState(``)
+}`);
+  const [review, setReview] = useState(``);
 
   useEffect(() => {
-    prism.highlightAll()
-  }, [])
+    prism.highlightAll();
+  }, []);
+
+  // ✅ Backend URL (works for both separate & integrated deployments)
+  const API_URL = import.meta.env.VITE_API_URL || "";
 
   async function reviewCode() {
-    const response = await axios.post('http://localhost:3000/ai/get-review', { code })
-    setReview(response.data)
+    try {
+      const response = await axios.post(`${API_URL}/ai/get-review`, { code });
+      setReview(response.data);
+    } catch (error) {
+      console.error("Error fetching review:", error);
+      setReview("⚠️ Could not fetch review. Check backend connection.");
+    }
   }
 
   return (
@@ -32,7 +38,7 @@ function App() {
           <div className="code">
             <Editor
               value={code}
-              onValueChange={code => setCode(code)}
+              onValueChange={setCode}
               highlight={code => prism.highlight(code, prism.languages.javascript, "javascript")}
               padding={10}
               style={{
@@ -45,22 +51,16 @@ function App() {
               }}
             />
           </div>
-          <div
-            onClick={reviewCode}
-            className="review">Review</div>
+          <div onClick={reviewCode} className="review">Review</div>
         </div>
         <div className="right">
-          <Markdown
-
-            rehypePlugins={[ rehypeHighlight ]}
-
-          >{review}</Markdown>
+          <Markdown rehypePlugins={[rehypeHighlight]}>
+            {review}
+          </Markdown>
         </div>
       </main>
     </>
   )
 }
-
-
 
 export default App
